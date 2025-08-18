@@ -1,0 +1,9 @@
+{
+  "name": "sam2",
+  "model": "sam2_hiera_large.pt",
+  "framework": "pytorch",
+  "description": "Segment Anything Model v2",
+  "handler": "segment_anything.py",
+  "type": "detector",
+  "labels": ["object"]
+}
