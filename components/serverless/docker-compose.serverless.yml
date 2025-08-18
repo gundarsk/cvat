@@ -21,6 +21,27 @@ services:
         max-size: 100m
         max-file: "3"
 
+  sam2:
+    container_name: cvat_sam2
+    image: curlimages/curl:8.6.0
+    restart: 'no'
+    depends_on:
+      nuclio:
+        condition: service_started
+    networks:
+      - cvat
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../serverless/pytorch/facebookresearch/sam2/nuclio:/opt/nuclio:ro
+    entrypoint: >-
+      /bin/sh -c "curl -L https://github.com/nuclio/nuclio/releases/download/1.13.0/nuctl-1.13.0-linux-amd64 -o /usr/local/bin/nuctl && \
+      chmod +x /usr/local/bin/nuctl && \
+      nuctl deploy --project-name cvat --path /opt/nuclio --file /opt/nuclio/function-gpu.yaml --platform local \
+        --env CVAT_FUNCTIONS_REDIS_HOST=cvat_redis_ondisk \
+        --env CVAT_FUNCTIONS_REDIS_PORT=6666 \
+        --platform-config '{"attributes": {"network": "cvat_cvat"}}' && \
+      tail -f /dev/null"
+
   cvat_server:
     environment:
       CVAT_SERVERLESS: 1
