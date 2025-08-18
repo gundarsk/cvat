@@ -107,6 +107,8 @@ Below is a detailed table of the supported algorithms and the platforms they ope
 | Algorithm Name                                                                                                                                      | Category   | Framework  | CPU Support | GPU Support |
 | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- | ----------- | ----------- |
 | [Segment Anything](https://github.com/cvat-ai/cvat/tree/develop/serverless/pytorch/facebookresearch/sam/nuclio)                                     | Interactor | PyTorch    | ✔️          | ✔️          |
+| [Segment Anything 2](https://github.com/cvat-ai/cvat/tree/develop/serverless/pytorch/facebookresearch/sam2/nuclio)
+                      | Interactor | PyTorch    | ✔️          | ✔️          |
 | [Deep Extreme Cut](https://github.com/cvat-ai/cvat/tree/develop/serverless/openvino/dextr/nuclio)                                                   | Interactor | OpenVINO   | ✔️          |             |
 | [Faster RCNN](https://github.com/cvat-ai/cvat/tree/develop/serverless/openvino/omz/public/faster_rcnn_inception_resnet_v2_atrous_coco/nuclio)       | Detector   | OpenVINO   | ✔️          |             |
 | [Mask RCNN](https://github.com/cvat-ai/cvat/tree/develop/serverless/openvino/omz/public/mask_rcnn_inception_resnet_v2_atrous_coco/nuclio)           | Detector   | OpenVINO   | ✔️          |             |

@@ -7,6 +7,7 @@ services:
       - cvat
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - nuclio_functions:/opt/nuclio
     environment:
       http_proxy:
       https_proxy:
@@ -30,3 +31,6 @@ services:
   cvat_worker_annotation:
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+volumes:
+  nuclio_functions:
