@@ -25,38 +25,33 @@ spec:
     - name: PYTHONPATH
       value: /opt/nuclio/sam
 
+spec:
+  runtime: python:3.10
+  handler: main:handler
+  env:
+    - name: SAM2_CONFIG
+      value: /opt/sam2/configs/sam2.1/sam2.1_hiera_l.yaml
+    - name: SAM2_CHECKPOINT
+      value: /opt/nuclio/sam2.1_hiera_large.pt
+    - name: PYTHONPATH
+      value: /opt/sam2
   build:
-    image: cvat.pth.facebookresearch.sam.vit_h:latest-gpu
-    baseImage: ubuntu:22.04
-
+    baseImage: nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
     directives:
       preCopy:
-      # set NVIDIA container runtime settings
-        - kind: ENV
-          value: NVIDIA_VISIBLE_DEVICES=all
-        - kind: ENV
-          value: NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      # disable interactive frontend
-        - kind: ENV
-          value: DEBIAN_FRONTEND=noninteractive
-      # set workdir
-        - kind: WORKDIR
-          value: /opt/nuclio/sam
-      # install basic deps
         - kind: RUN
-          value: apt-get update && apt-get -y install curl git python3 python3-pip ffmpeg libsm6 libxext6
-      # install sam deps
+          value: apt-get update && apt-get install -y python3-pip git curl && rm -rf /var/lib/apt/lists/*
         - kind: RUN
-          value: pip3 install torch torchvision torchaudio pycocotools matplotlib onnxruntime onnx
-      # install sam code
+          value: python3 -m pip install --upgrade pip
+        # Match your CUDA (12.1 here) — adjust if needed
         - kind: RUN
-          value: pip3 install git+https://github.com/facebookresearch/segment-anything.git
-      # download sam weights
+          value: pip install "torch>=2.5.1" "torchvision>=0.20.1" --index-url https://download.pytorch.org/whl/cu121
         - kind: RUN
-          value: curl -O https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-      # map pip3 and python3 to pip and python
+          value: pip install numpy pillow opencv-python-headless
         - kind: RUN
-          value: ln -s /usr/bin/pip3 /usr/local/bin/pip && ln -s /usr/bin/python3 /usr/bin/python
+          value: git clone https://github.com/facebookresearch/sam2.git /opt/sam2 && pip install -e /opt/sam2
+        - kind: RUN
+          value: curl -L https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt -o /opt/nuclio/sam2.1_hiera_large.pt
   triggers:
     myHttpTrigger:
       numWorkers: 1
