@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: MIT
 
 metadata:
-  name: pth-facebookresearch-sam-vit-h
+  name: pth-facebookresearch-sam2-hiera-large
   namespace: cvat
   annotations:
-    name: Segment Anything
+    name: Segment Anything 2
     version: 2
     type: interactor
     spec:
