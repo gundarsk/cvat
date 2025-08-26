@@ -1,16 +1,14 @@
 metadata:
-  name: pth-facebookresearch-sam2-hiera-l
+  name: sam2
   namespace: nuclio
   labels:
     nuclio.io/project-name: cvat
   annotations:
-    name: Segment Anything 2 (Hiera-L)
-    type: interactor
-    version: 2
-    spec:
-      min_pos_points: 0
-      min_neg_points: 0
-      startswith_box_optional: true
+    name: "Segment Anything 2 (Hiera-L)"
+    type: "interactor"
+    version: "2"
+    # IMPORTANT: annotations must be strings; spec is JSON string
+    spec: '{"min_pos_points": 0, "min_neg_points": 0, "startswith_box_optional": true}'
 
 spec:
   runtime: python:3.10
@@ -20,7 +18,7 @@ spec:
     - name: SAM2_CONFIG
       value: /opt/sam2/configs/sam2.1/sam2.1_hiera_l.yaml
     - name: SAM2_CHECKPOINT
-      value: /workspace/serverless/pytorch/segment_anything/models/sam2.1_hiera_large.pt
+      value: /opt/nuclio/weights/sam2.1_hiera_large.pt
     - name: PYTHONPATH
       value: /opt/sam2
 
@@ -31,7 +29,7 @@ spec:
         - kind: ENV
           value: DEBIAN_FRONTEND=noninteractive
         - kind: RUN
-          value: apt-get update && apt-get install -y python3-pip git curl && rm -rf /var/lib/apt/lists/*
+          value: apt-get update && apt-get install -y python3-pip git && rm -rf /var/lib/apt/lists/*
         - kind: RUN
           value: python3 -m pip install --upgrade pip
         - kind: RUN
@@ -40,7 +38,6 @@ spec:
           value: pip install numpy pillow opencv-python-headless
         - kind: RUN
           value: git clone https://github.com/facebookresearch/sam2.git /opt/sam2 && pip install -e /opt/sam2
-
 
   triggers:
     http:
