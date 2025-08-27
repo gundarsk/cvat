@@ -78,3 +78,6 @@ cvat-ui/dist
 **/!.yarn/sdks
 **/!.yarn/versions
 /serverless/pytorch/segment_anything/models/sam2.1_hiera_large.pt
+/serverless/pytorch/facebookresearch/sam2/weights/
+/serverless/pytorch/facebookresearch/sam2_interactor/weights/
+/nuctl
