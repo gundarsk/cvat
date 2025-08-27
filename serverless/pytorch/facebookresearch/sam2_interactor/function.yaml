@@ -1,13 +1,14 @@
 metadata:
-  name: sam2
+  name: sam2-interactor
   namespace: nuclio
   labels:
     nuclio.io/project-name: cvat
   annotations:
-    name: "Segment Anything 2 (Hiera-L)"
+    name: "Segment Anything 2 (Interactor)"
     type: "interactor"
     version: "2"
-    # IMPORTANT: annotations must be strings; spec is JSON string
+    # CVAT reads this JSON string; annotation values must be strings (Nuclio requirement).
+    # min_* says how many clicks are required; box optional allows clicks-only flow.
     spec: '{"min_pos_points": 0, "min_neg_points": 0, "startswith_box_optional": true}'
 
 spec:
@@ -29,15 +30,16 @@ spec:
         - kind: ENV
           value: DEBIAN_FRONTEND=noninteractive
         - kind: RUN
-          value: apt-get update && apt-get install -y python3-pip git && rm -rf /var/lib/apt/lists/*
+          value: apt-get update && apt-get install -y python3-pip git build-essential python3-dev && rm -rf /var/lib/apt/lists/*
         - kind: RUN
           value: ln -sf /usr/bin/python3 /usr/bin/python
         - kind: RUN
           value: python3 -m pip install --upgrade pip
+        # Torch + torchvision for CUDA 12.1 (adjust cu version if needed)
         - kind: RUN
-          value: pip install "torch>=2.5.1" "torchvision>=0.20.1" --index-url https://download.pytorch.org/whl/cu121
+          value: pip install --no-cache-dir "torch>=2.5.1" "torchvision>=0.20.1" --index-url https://download.pytorch.org/whl/cu121
         - kind: RUN
-          value: pip install numpy pillow opencv-python-headless
+          value: pip install --no-cache-dir numpy pillow opencv-python-headless pycocotools
         - kind: RUN
           value: git clone https://github.com/facebookresearch/sam2.git /opt/sam2 && pip install -e /opt/sam2
 
