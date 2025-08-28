@@ -28,10 +28,19 @@ spec:
       preCopy:
         - kind: ENV
           value: DEBIAN_FRONTEND=noninteractive
+        - kind: ENV
+          value: DEBIAN_FRONTEND=noninteractive
+        - kind: RUN
+          value: apt-get update && apt-get install -y curl    # Install curl
+        - kind: WORKDIR
+          value: /opt/nuclio
+        - kind: RUN
+          value: curl -L -o /opt/nuclio/sam2.1_hiera_large.pt \
+           https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt  # Download SAM2 weights
         - kind: RUN
           value: apt-get update && apt-get install -y python3-pip git && rm -rf /var/lib/apt/lists/*
         - kind: RUN
-          value: ln -sf /usr/bin/python3 /usr/bin/python
+          value: ln -sfdocker compose down -v /usr/bin/python3 /usr/bin/python
         - kind: RUN
           value: python3 -m pip install --upgrade pip
         - kind: RUN
