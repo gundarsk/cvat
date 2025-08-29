@@ -30,6 +30,12 @@ spec:
         - kind: ENV
           value: DEBIAN_FRONTEND=noninteractive
         - kind: RUN
+          value: apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+        - kind: WORKDIR
+          value: /opt/nuclio/weights
+        - kind: RUN
+          value: curl -L -o /opt/nuclio/weights/sam2.1_hiera_large.pt https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt
+        - kind: RUN
           value: apt-get update && apt-get install -y python3-pip git build-essential python3-dev && rm -rf /var/lib/apt/lists/*
         - kind: RUN
           value: ln -sf /usr/bin/python3 /usr/bin/python

@@ -40,7 +40,7 @@ spec:
         - kind: RUN
           value: apt-get update && apt-get install -y python3-pip git && rm -rf /var/lib/apt/lists/*
         - kind: RUN
-          value: ln -sfdocker compose down -v /usr/bin/python3 /usr/bin/python
+          value: ln -sf /usr/bin/python3 /usr/bin/python
         - kind: RUN
           value: python3 -m pip install --upgrade pip
         - kind: RUN
