@@ -1,19 +1,62 @@
+# serverless/pytorch/facebookresearch/sam2/nuclio/function.yaml
+metaVersion: v1
+kind: function
 metadata:
-  name: sam2
+  name: sam2_interactor
   namespace: nuclio
-  labels:
-    nuclio.io/project-name: cvat
   annotations:
+    # human-friendly name shown in UI - MUST be a string
     name: "Segment Anything 2 (Hiera-L)"
-    type: "interactor"
+    # keep version as string
     version: "2"
-    # IMPORTANT: annotations must be strings; spec is JSON string
-    spec: '{"min_pos_points": 0, "min_neg_points": 0, "startswith_box_optional": true}'
+    # function type used by CVAT - string
+    type: "interactor"
+    # minimal point prompts required (strings)
+    min_pos_points: "0"
+    min_neg_points: "0"
+    # allow starting with a box prompt (string-encoded boolean)
+    startswith_box_optional: "true"
+    # short help message for CVAT
+    help_message: "SAM2 (Hiera-L) interactor: provide point prompts or a box; zero positive points allowed (box-only is accepted)."
+    # An example GIF or documentation URL (string)
+    spec: |
+      {"min_pos_points":0,"min_neg_points":0,"startswith_box_optional":true}
+labels:
+  nuclio.io/project-name: cvat
 
 spec:
-  runtime: python:3.10
-  handler: main:handler
+  # Base image for building the function container (CUDA runtime for GPU)
+  build:
+    baseImage: nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+    # Pre-copy/build directives - executed during image build
+    directives:
+      preCopy:
+        - kind: ENV
+          value: DEBIAN_FRONTEND=noninteractive
+        - kind: RUN
+          value: apt-get update && apt-get install -y python3-pip git curl && rm -rf /var/lib/apt/lists/*
+        - kind: RUN
+          value: python3 -m pip install --upgrade pip
+        - kind: WORKDIR
+          value: /opt/nuclio
+        # create weights dir
+        - kind: RUN
+          value: mkdir -p /opt/nuclio/weights
+        # download the Hiera-L checkpoint during build (replace URL if upstream changes)
+        - kind: RUN
+          value: curl -L -o /opt/nuclio/weights/sam2.1_hiera_large.pt \
+                 https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt
+        # install PyTorch (CUDA 12.1) and torchvision from PyTorch index; adjust versions if needed
+        - kind: RUN
+          value: pip install "torch>=2.5.1" "torchvision>=0.20.1" --index-url https://download.pytorch.org/whl/cu121
+        - kind: RUN
+          value: pip install numpy pillow opencv-python-headless
+        # fetch sam2 code and make it available in container
+        - kind: RUN
+          value: git clone https://github.com/facebookresearch/sam2.git /opt/sam2 && pip install -e /opt/sam2
+  disableDefaultHTTPTrigger: false
 
+  # environment variables used by the handler
   env:
     - name: SAM2_CONFIG
       value: /opt/sam2/configs/sam2.1/sam2.1_hiera_l.yaml
@@ -22,41 +65,30 @@ spec:
     - name: PYTHONPATH
       value: /opt/sam2
 
-  build:
-    baseImage: nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
-    directives:
-      preCopy:
-        - kind: ENV
-          value: DEBIAN_FRONTEND=noninteractive
-        - kind: ENV
-          value: DEBIAN_FRONTEND=noninteractive
-        - kind: RUN
-          value: apt-get update && apt-get install -y curl    # Install curl
-        - kind: WORKDIR
-          value: /opt/nuclio
-        - kind: RUN
-          value: curl -L -o /opt/nuclio/sam2.1_hiera_large.pt \
-           https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt  # Download SAM2 weights
-        - kind: RUN
-          value: apt-get update && apt-get install -y python3-pip git && rm -rf /var/lib/apt/lists/*
-        - kind: RUN
-          value: ln -sf /usr/bin/python3 /usr/bin/python
-        - kind: RUN
-          value: python3 -m pip install --upgrade pip
-        - kind: RUN
-          value: pip install "torch>=2.5.1" "torchvision>=0.20.1" --index-url https://download.pytorch.org/whl/cu121
-        - kind: RUN
-          value: pip install numpy pillow opencv-python-headless
-        - kind: RUN
-          value: git clone https://github.com/facebookresearch/sam2.git /opt/sam2 && pip install -e /opt/sam2
+  # function handler (module:function)
+  handler: main:handler
+  # runtime
+  runtime: python:3.10
 
+  # expose as an HTTP trigger so CVAT can call it
   triggers:
     http:
+      class: ""
       kind: http
-      workerAvailabilityTimeoutMilliseconds: 10000
+      name: http
       attributes:
         maxRequestBodySize: 33554432
+      numWorkers: 1
+      workerAvailabilityTimeoutMilliseconds: 10000
 
+  # resource requests/limits - request a GPU; memory request set high for model load
   resources:
     limits:
-      nvidia.com/gpu: 1
+      nvidia.com/gpu: "1"
+    requests:
+      cpu: 250m
+      memory: 8Gi
+
+  readinessTimeoutSeconds: 300
+  eventTimeout: ""
+  platform: {}
